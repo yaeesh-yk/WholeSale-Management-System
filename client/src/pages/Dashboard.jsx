@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { api } from '../lib/api';
 import { fmtCurrency, fmtDate, statusBadge } from '../lib/utils';
 import {
@@ -43,6 +43,7 @@ const CustomTooltip = ({ active, payload, label }) => {
 export default function Dashboard() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const restoreRef = useRef(null);
 
   useEffect(() => {
     api.dashboard()
@@ -63,8 +64,65 @@ export default function Dashboard() {
     <div className="space-y-8">
       {/* Page Header */}
       <div>
-        <h1 className="text-2xl font-bold text-slate-800">Dashboard</h1>
-        <p className="text-slate-500 text-sm mt-1">Overview of your wholesale business</p>
+        <div className="flex items-start justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-slate-800">Dashboard</h1>
+            <p className="text-slate-500 text-sm mt-1">Overview of your wholesale business</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <label className="btn btn-ghost" htmlFor="restoreFile">Restore Backup</label>
+            <input
+              id="restoreFile"
+              ref={restoreRef}
+              type="file"
+              accept="application/json"
+              className="hidden"
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                try {
+                  const text = await file.text();
+                  const json = JSON.parse(text);
+                  await api.restore(json);
+                  toast.success('Restore completed');
+                  // reload dashboard data
+                  setLoading(true);
+                  const newData = await api.dashboard();
+                  setData(newData);
+                } catch (err) {
+                  console.error(err);
+                  toast.error(err.message || 'Restore failed');
+                } finally {
+                  // reset input
+                  if (restoreRef.current) restoreRef.current.value = '';
+                  setLoading(false);
+                }
+              }}
+            />
+            <button
+              className="btn btn-primary"
+              onClick={async () => {
+                try {
+                  const res = await api.backup();
+                  const blob = new Blob([JSON.stringify(res, null, 2)], { type: 'application/json' });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = `wholesale-backup-${new Date().toISOString()}.json`;
+                  document.body.appendChild(a);
+                  a.click();
+                  a.remove();
+                  URL.revokeObjectURL(url);
+                  toast.success('Backup downloaded');
+                } catch (err) {
+                  toast.error(err.message || 'Failed to download backup');
+                }
+              }}
+            >
+              Export Backup
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Stats Grid */}

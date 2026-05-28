@@ -53,4 +53,7 @@ export const api = {
   createPayment: (body) => request('/payments', { method: 'POST', body: JSON.stringify(body) }),
   getPaymentsByShopkeeper: (shopkeeperId) => request(`/payments/shopkeeper/${shopkeeperId}`),
   getPayments: () => request('/payments'),
+  // Backup / Restore
+  backup: () => request('/backup'),
+  restore: (data) => request('/restore', { method: 'POST', body: JSON.stringify(data) }),
 };
