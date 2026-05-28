@@ -10,8 +10,17 @@ const request = async (path, options = {}) => {
     ...options.headers,
   };
   const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.message || data.errors?.[0]?.msg || 'Request failed');
+  const text = await res.text();
+  let data;
+  try {
+    data = text ? JSON.parse(text) : null;
+  } catch (err) {
+    // Provide clearer error when server returns HTML or non-JSON
+    const snippet = text ? text.slice(0, 500) : '<empty response>';
+    throw new Error(`Expected JSON response but received: ${snippet}`);
+  }
+
+  if (!res.ok) throw new Error(data?.message || data?.errors?.[0]?.msg || 'Request failed');
   return data;
 };
 
