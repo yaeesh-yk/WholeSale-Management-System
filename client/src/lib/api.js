@@ -1,6 +1,13 @@
+import { useAuthStore } from '../store/authStore';
+
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 const getToken = () => localStorage.getItem('ws_token');
+
+const clearSession = () => {
+  useAuthStore.getState().logout();
+  window.location.replace('/login');
+};
 
 const request = async (path, options = {}) => {
   const token = getToken();
@@ -11,6 +18,12 @@ const request = async (path, options = {}) => {
   };
   const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
   const text = await res.text();
+
+  if (res.status === 401) {
+    clearSession();
+    throw new Error('Session expired. Redirecting to login.');
+  }
+
   let data;
   try {
     data = text ? JSON.parse(text) : null;
