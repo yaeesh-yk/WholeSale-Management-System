@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-const INACTIVITY_LIMIT_MS = 60 * 1000;
+const INACTIVITY_LIMIT_MS = 30 * 60 * 1000;
 
 const parseTokenExpiry = (token) => {
   if (!token) return null;

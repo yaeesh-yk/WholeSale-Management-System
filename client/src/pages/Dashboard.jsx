@@ -40,28 +40,47 @@ const CustomTooltip = ({ active, payload, label }) => {
   return null;
 };
 
+const defaultData = {
+  todaySales: 0,
+  weeklySales: [],
+  monthlySales: 0,
+  totalOutstanding: 0,
+  topShopkeepers: [],
+  topProducts: [],
+  lowStockProducts: [],
+  recentOrders: [],
+  lowStockCount: 0,
+};
+
 export default function Dashboard() {
-  const [data, setData] = useState(null);
+  const [data, setData] = useState(defaultData);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const restoreRef = useRef(null);
 
   useEffect(() => {
     api.dashboard()
       .then(setData)
-      .catch(() => toast.error('Failed to load dashboard'))
+      .catch(() => {
+        setLoadError(true);
+        toast.error('Failed to load dashboard');
+      })
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return (
-    <div className="flex items-center justify-center min-h-[60vh]">
-      <Loader2 size={32} className="animate-spin text-primary-500" />
-    </div>
-  );
-
-  if (!data) return null;
-
   return (
     <div className="space-y-8">
+      {loading && !loadError && (
+        <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
+          Loading dashboard data…
+        </div>
+      )}
+      {loadError && (
+        <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">
+          Dashboard data failed to load quickly. Please refresh or login again.
+        </div>
+      )}
+
       {/* Page Header */}
       <div>
         <div className="flex items-start justify-between">
