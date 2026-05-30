@@ -20,7 +20,7 @@ const clearSession = () => {
   window.location.replace('/login');
 };
 
-const request = async (path, options = {}) => {
+const request = async (path, options = {}, timeoutMs = 3000) => {
   const token = getToken();
   const expiresAt = parseTokenExpiry(token);
   if (token && expiresAt && Date.now() >= expiresAt) {
@@ -33,7 +33,19 @@ const request = async (path, options = {}) => {
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...options.headers,
   };
-  const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
+
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeoutMs);
+  let res;
+  try {
+    res = await fetch(`${API_BASE}${path}`, { ...options, headers, signal: controller.signal });
+  } catch (err) {
+    if (err.name === 'AbortError') throw new Error('Request timed out');
+    throw err;
+  } finally {
+    clearTimeout(id);
+  }
+
   const text = await res.text();
 
   if (res.status === 401) {
