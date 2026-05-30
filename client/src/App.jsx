@@ -21,14 +21,15 @@ function App() {
         {/* Protected Routes inside App Layout */}
         <Route element={<ProtectedRoute />}>
           <Route element={<Layout />}>
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/shopkeepers" element={<Shopkeepers />} />
-            <Route path="/shopkeepers/:id" element={<ShopkeeperDetail />} />
-            <Route path="/products" element={<Products />} />
-            <Route path="/orders" element={<Orders />} />
-            <Route path="/orders/new" element={<NewOrder />} />
-            <Route path="/orders/:id/bill" element={<BillView />} />
-            <Route path="/payments" element={<Payments />} />
+            <Route index element={<Dashboard />} />
+            <Route path="dashboard" element={<Dashboard />} />
+            <Route path="shopkeepers" element={<Shopkeepers />} />
+            <Route path="shopkeepers/:id" element={<ShopkeeperDetail />} />
+            <Route path="products" element={<Products />} />
+            <Route path="orders" element={<Orders />} />
+            <Route path="orders/new" element={<NewOrder />} />
+            <Route path="orders/:id/bill" element={<BillView />} />
+            <Route path="payments" element={<Payments />} />
           </Route>
         </Route>
 
