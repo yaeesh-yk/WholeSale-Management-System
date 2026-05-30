@@ -19,7 +19,7 @@ function App() {
         <Route path="/login" element={<Login />} />
 
         {/* Protected Routes inside App Layout */}
-        <Route element={<ProtectedRoute />}>
+        <Route path="/*" element={<ProtectedRoute />}>
           <Route element={<Layout />}>
             <Route index element={<Dashboard />} />
             <Route path="dashboard" element={<Dashboard />} />
@@ -30,12 +30,9 @@ function App() {
             <Route path="orders/new" element={<NewOrder />} />
             <Route path="orders/:id/bill" element={<BillView />} />
             <Route path="payments" element={<Payments />} />
+            <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Route>
         </Route>
-
-        {/* Redirect Root & Fallback */}
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </BrowserRouter>
   );
