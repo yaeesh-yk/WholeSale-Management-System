@@ -15,15 +15,15 @@ const schema = z.object({
 
 export default function Login() {
   const navigate = useNavigate();
-  const { login, isAuthenticated, hydrated } = useAuthStore();
+  const { login, isAuthenticated } = useAuthStore();
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (hydrated && isAuthenticated) {
+    if (isAuthenticated) {
       navigate('/dashboard', { replace: true });
     }
-  }, [hydrated, isAuthenticated, navigate]);
+  }, [isAuthenticated, navigate]);
 
   const { register, handleSubmit, formState: { errors } } = useForm({ resolver: zodResolver(schema) });
 

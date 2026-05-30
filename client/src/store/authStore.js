@@ -44,7 +44,6 @@ export const useAuthStore = create(
       expiresAt: null,
       lastActivityAt: null,
       isAuthenticated: false,
-      hydrated: false,
       login: (token, username) => {
         const expiresAt = parseTokenExpiry(token);
         const now = Date.now();
@@ -65,7 +64,6 @@ export const useAuthStore = create(
           return newState;
         });
       },
-      setHydrated: (value) => set({ hydrated: value }),
     }),
     {
       name: 'ws-auth',
@@ -87,7 +85,6 @@ export const useAuthStore = create(
             scheduleLogout({ expiresAt, lastActivityAt });
           }
         }
-        useAuthStore.getState().setHydrated(true);
       },
     }
   )
