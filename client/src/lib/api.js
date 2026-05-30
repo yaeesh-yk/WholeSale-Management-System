@@ -4,6 +4,17 @@ const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 const getToken = () => localStorage.getItem('ws_token');
 
+const parseTokenExpiry = (token) => {
+  if (!token) return null;
+  try {
+    const [, payload] = token.split('.');
+    const decoded = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')));
+    return decoded.exp ? decoded.exp * 1000 : null;
+  } catch (err) {
+    return null;
+  }
+};
+
 const clearSession = () => {
   useAuthStore.getState().logout();
   window.location.replace('/login');
@@ -11,6 +22,12 @@ const clearSession = () => {
 
 const request = async (path, options = {}) => {
   const token = getToken();
+  const expiresAt = parseTokenExpiry(token);
+  if (token && expiresAt && Date.now() >= expiresAt) {
+    clearSession();
+    throw new Error('Session expired. Redirecting to login.');
+  }
+
   const headers = {
     'Content-Type': 'application/json',
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
