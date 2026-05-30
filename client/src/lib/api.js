@@ -20,7 +20,7 @@ const clearSession = () => {
   window.location.replace('/login');
 };
 
-const request = async (path, options = {}, timeoutMs = 3000) => {
+const request = async (path, options = {}, timeoutMs = 15000) => {
   const token = getToken();
   const expiresAt = parseTokenExpiry(token);
   if (token && expiresAt && Date.now() >= expiresAt) {
