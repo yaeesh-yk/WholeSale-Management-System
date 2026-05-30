@@ -2,15 +2,20 @@ import { useEffect } from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 
+const INACTIVITY_LIMIT_MS = 60 * 1000;
+
 export default function ProtectedRoute() {
-  const { isAuthenticated, expiresAt, logout } = useAuthStore();
-  const isExpired = expiresAt ? Date.now() >= expiresAt : false;
+  const { isAuthenticated, expiresAt, lastActivityAt, logout } = useAuthStore();
+  const isTokenExpired = expiresAt ? Date.now() >= expiresAt : false;
+  const isInactive = lastActivityAt ? Date.now() - lastActivityAt >= INACTIVITY_LIMIT_MS : false;
 
   useEffect(() => {
-    if (isExpired) logout();
-  }, [isExpired, logout]);
+    if (isTokenExpired || isInactive) {
+      logout();
+    }
+  }, [isTokenExpired, isInactive, logout]);
 
-  if (!isAuthenticated || isExpired) {
+  if (!isAuthenticated || isTokenExpired || isInactive) {
     return <Navigate to="/login" replace />;
   }
 

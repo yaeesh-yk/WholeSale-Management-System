@@ -1,11 +1,21 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import { Menu, Bell } from 'lucide-react';
 import { Toaster } from 'react-hot-toast';
+import { useAuthStore } from '../store/authStore';
 
 export default function Layout() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const updateActivity = useAuthStore((state) => state.updateActivity);
+
+  useEffect(() => {
+    const events = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll'];
+    const handler = () => updateActivity();
+
+    events.forEach((event) => window.addEventListener(event, handler, { passive: true }));
+    return () => events.forEach((event) => window.removeEventListener(event, handler));
+  }, [updateActivity]);
 
   return (
     <div className="flex h-screen bg-slate-50 overflow-hidden">

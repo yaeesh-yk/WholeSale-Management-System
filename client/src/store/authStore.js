@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
+const INACTIVITY_LIMIT_MS = 60 * 1000;
+
 const parseTokenExpiry = (token) => {
   if (!token) return null;
   try {
@@ -14,12 +16,15 @@ const parseTokenExpiry = (token) => {
 
 let logoutTimer = null;
 
-const scheduleLogout = (expiresAt) => {
+const scheduleLogout = ({ expiresAt, lastActivityAt }) => {
   if (logoutTimer) clearTimeout(logoutTimer);
-  if (!expiresAt) return;
 
-  const msUntilExpiry = expiresAt - Date.now() - 3000;
-  if (msUntilExpiry <= 0) {
+  const now = Date.now();
+  const tokenExpiryTime = expiresAt ? expiresAt - 3000 : Infinity;
+  const idleExpiryTime = lastActivityAt ? lastActivityAt + INACTIVITY_LIMIT_MS : Infinity;
+  const logoutAt = Math.min(tokenExpiryTime, idleExpiryTime);
+
+  if (logoutAt <= now) {
     useAuthStore.getState().logout();
     window.location.replace('/login');
     return;
@@ -28,7 +33,7 @@ const scheduleLogout = (expiresAt) => {
   logoutTimer = setTimeout(() => {
     useAuthStore.getState().logout();
     window.location.replace('/login');
-  }, msUntilExpiry);
+  }, logoutAt - now);
 };
 
 export const useAuthStore = create(
@@ -37,27 +42,48 @@ export const useAuthStore = create(
       token: null,
       username: null,
       expiresAt: null,
+      lastActivityAt: null,
       isAuthenticated: false,
       login: (token, username) => {
         const expiresAt = parseTokenExpiry(token);
-        set({ token, username, expiresAt, isAuthenticated: true });
+        const now = Date.now();
+        set({ token, username, expiresAt, lastActivityAt: now, isAuthenticated: true });
         localStorage.setItem('ws_token', token);
-        scheduleLogout(expiresAt);
+        scheduleLogout({ expiresAt, lastActivityAt: now });
       },
       logout: () => {
         if (logoutTimer) clearTimeout(logoutTimer);
         localStorage.removeItem('ws_token');
-        set({ token: null, username: null, expiresAt: null, isAuthenticated: false });
+        set({ token: null, username: null, expiresAt: null, lastActivityAt: null, isAuthenticated: false });
+      },
+      updateActivity: () => {
+        const now = Date.now();
+        set((state) => {
+          const newState = { lastActivityAt: now };
+          if (state.token) scheduleLogout({ expiresAt: state.expiresAt, lastActivityAt: now });
+          return newState;
+        });
       },
     }),
     {
       name: 'ws-auth',
-      partialize: (state) => ({ token: state.token, username: state.username, expiresAt: state.expiresAt, isAuthenticated: state.isAuthenticated }),
+      partialize: (state) => ({
+        token: state.token,
+        username: state.username,
+        expiresAt: state.expiresAt,
+        lastActivityAt: state.lastActivityAt,
+        isAuthenticated: state.isAuthenticated,
+      }),
       onRehydrateStorage: () => (state) => {
         if (state?.token) {
           localStorage.setItem('ws_token', state.token);
           const expiresAt = parseTokenExpiry(state.token);
-          if (expiresAt) scheduleLogout(expiresAt);
+          const lastActivityAt = state.lastActivityAt ?? Date.now();
+          if (Date.now() - lastActivityAt >= INACTIVITY_LIMIT_MS) {
+            useAuthStore.getState().logout();
+          } else {
+            scheduleLogout({ expiresAt, lastActivityAt });
+          }
         }
       },
     }
