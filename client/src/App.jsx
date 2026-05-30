@@ -19,7 +19,7 @@ function App() {
         <Route path="/login" element={<Login />} />
 
         {/* Protected Routes inside App Layout */}
-        <Route path="/*" element={<ProtectedRoute />}>
+        <Route path="/" element={<ProtectedRoute />}>
           <Route element={<Layout />}>
             <Route index element={<Dashboard />} />
             <Route path="dashboard" element={<Dashboard />} />
