@@ -225,8 +225,8 @@ export default function Dashboard() {
               <p className="text-sm">All products are well-stocked!</p>
             </div>
           ) : (
-            <div className="space-y-2">
-              {data.lowStockProducts.slice(0, 6).map(p => (
+            <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
+              {data.lowStockProducts.map(p => (
                 <div key={p._id} className="flex items-center justify-between py-2 border-b border-slate-50 last:border-0">
                   <div>
                     <p className="text-sm font-medium text-slate-700">{p.name}</p>
