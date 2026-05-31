@@ -39,12 +39,12 @@ function ConfirmModal({ open, onClose, onConfirm, loading }) {
           <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
             <Trash2 size={22} className="text-red-500" />
           </div>
-          <h3 className="text-base font-bold text-slate-800 mb-2">Delete Product</h3>
-          <p className="text-sm text-slate-500 mb-6">This cannot be undone. The product will be removed.</p>
+          <h3 className="text-base font-bold text-slate-800 mb-2">Archive Product</h3>
+          <p className="text-sm text-slate-500 mb-6">This hides the product from active lists while keeping old invoice history.</p>
           <div className="flex gap-3">
             <button onClick={onClose} className="btn-secondary flex-1 justify-center">Cancel</button>
             <button onClick={onConfirm} disabled={loading} className="btn-danger flex-1 justify-center">
-              {loading ? <Loader2 size={16} className="animate-spin" /> : 'Delete'}
+              {loading ? <Loader2 size={16} className="animate-spin" /> : 'Archive'}
             </button>
           </div>
         </div>
@@ -113,7 +113,7 @@ export default function Products() {
     setDeleting(true);
     try {
       await api.deleteProduct(deleteTarget._id);
-      toast.success('Product deleted');
+      toast.success('Product archived');
       setDeleteTarget(null);
       fetchProducts();
     } catch (err) {

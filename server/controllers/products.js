@@ -4,7 +4,7 @@ const Product = require('../models/Product');
 exports.getAll = async (req, res) => {
   try {
     const { search, lowStock } = req.query;
-    let filter = {};
+    let filter = { isActive: { $ne: false } };
     if (search) {
       filter.$or = [
         { name: { $regex: search, $options: 'i' } },
@@ -39,8 +39,8 @@ exports.update = async (req, res) => {
   if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
   try {
     const { name, category, price, stock, lowStockThreshold } = req.body;
-    const product = await Product.findByIdAndUpdate(
-      req.params.id,
+    const product = await Product.findOneAndUpdate(
+      { _id: req.params.id, isActive: { $ne: false } },
       { name, category, price, stock, lowStockThreshold },
       { new: true, runValidators: true }
     );
@@ -53,9 +53,13 @@ exports.update = async (req, res) => {
 
 exports.remove = async (req, res) => {
   try {
-    const product = await Product.findByIdAndDelete(req.params.id);
+    const product = await Product.findOneAndUpdate(
+      { _id: req.params.id, isActive: { $ne: false } },
+      { isActive: false, deletedAt: new Date() },
+      { new: true }
+    );
     if (!product) return res.status(404).json({ message: 'Product not found' });
-    res.json({ message: 'Product deleted successfully' });
+    res.json({ message: 'Product archived successfully' });
   } catch (err) {
     res.status(500).json({ message: 'Server error', error: err.message });
   }

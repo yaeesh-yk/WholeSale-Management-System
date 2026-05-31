@@ -49,14 +49,14 @@ export default function NewOrder() {
   const addProduct = (product) => {
     setOrderItems(prev => {
       const existing = prev.find(i => i.productId === product._id);
-      if (existing) return prev.map(i => i.productId === product._id ? { ...i, quantity: i.quantity + 1 } : i);
+      if (existing) return prev.map(i => i.productId === product._id ? { ...i, quantity: Math.min(i.stock, i.quantity + 1) } : i);
       return [...prev, { productId: product._id, productName: product.name, unitPrice: product.price, quantity: 1, stock: product.stock }];
     });
   };
 
   const updateQty = (productId, qty) => {
     if (qty <= 0) { removeItem(productId); return; }
-    setOrderItems(prev => prev.map(i => i.productId === productId ? { ...i, quantity: qty } : i));
+    setOrderItems(prev => prev.map(i => i.productId === productId ? { ...i, quantity: Math.min(i.stock, qty) } : i));
   };
 
   const removeItem = (productId) => setOrderItems(prev => prev.filter(i => i.productId !== productId));
@@ -266,7 +266,7 @@ export default function NewOrder() {
                 min={0}
                 max={subtotal}
                 value={discount}
-                onChange={e => setDiscount(parseFloat(e.target.value) || 0)}
+                onChange={e => setDiscount(Math.min(subtotal, Math.max(0, parseFloat(e.target.value) || 0)))}
                 className="input"
                 placeholder="0"
               />
@@ -305,7 +305,7 @@ export default function NewOrder() {
                 max={total}
                 step="0.01"
                 value={amountPaid}
-                onChange={e => setAmountPaid(parseFloat(e.target.value) || 0)}
+                onChange={e => setAmountPaid(Math.min(total, Math.max(0, parseFloat(e.target.value) || 0)))}
                 className="input"
                 placeholder="0 for full credit"
               />

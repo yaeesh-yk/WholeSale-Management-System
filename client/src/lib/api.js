@@ -10,7 +10,7 @@ const parseTokenExpiry = (token) => {
     const [, payload] = token.split('.');
     const decoded = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')));
     return decoded.exp ? decoded.exp * 1000 : null;
-  } catch (err) {
+  } catch {
     return null;
   }
 };
@@ -40,7 +40,7 @@ const request = async (path, options = {}, timeoutMs = 15000) => {
   try {
     res = await fetch(`${API_BASE}${path}`, { ...options, headers, signal: controller.signal });
   } catch (err) {
-    if (err.name === 'AbortError') throw new Error('Request timed out');
+    if (err.name === 'AbortError') throw new Error('Request timed out', { cause: err });
     throw err;
   } finally {
     clearTimeout(id);
@@ -59,7 +59,7 @@ const request = async (path, options = {}, timeoutMs = 15000) => {
   } catch (err) {
     // Provide clearer error when server returns HTML or non-JSON
     const snippet = text ? text.slice(0, 500) : '<empty response>';
-    throw new Error(`Expected JSON response but received: ${snippet}`);
+    throw new Error(`Expected JSON response but received: ${snippet}`, { cause: err });
   }
 
   if (!res.ok) throw new Error(data?.message || data?.errors?.[0]?.msg || 'Request failed');

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
-import { Menu, Bell } from 'lucide-react';
+import { Menu } from 'lucide-react';
 import { Toaster } from 'react-hot-toast';
 import { useAuthStore } from '../store/authStore';
 
@@ -10,7 +10,7 @@ export default function Layout() {
   const updateActivity = useAuthStore((state) => state.updateActivity);
 
   useEffect(() => {
-    const events = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll'];
+    const events = ['mousemove', 'click', 'keydown', 'touchstart', 'scroll'];
     const handler = () => updateActivity();
 
     events.forEach((event) => window.addEventListener(event, handler, { passive: true }));

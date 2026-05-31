@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import {
   CreditCard, Search, Loader2, ArrowUpRight,
-  DollarSign, FileText, Calendar, TrendingUp, Info
+  DollarSign, Calendar, TrendingUp, Info
 } from 'lucide-react';
 
 function StatCard({ label, value, icon: Icon, color, sub }) {
@@ -34,7 +34,7 @@ export default function Payments() {
     try {
       const data = await api.getPayments();
       setPayments(data);
-    } catch (err) {
+    } catch {
       toast.error('Failed to load payment history');
     } finally {
       setLoading(false);

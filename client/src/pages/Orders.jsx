@@ -39,7 +39,7 @@ export default function Orders() {
 
       const data = await api.getOrders(params);
       setOrders(data);
-    } catch (err) {
+    } catch {
       toast.error('Failed to load orders');
     } finally {
       setLoading(false);

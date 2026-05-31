@@ -7,22 +7,32 @@ exports.create = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
+  const session = await Payment.startSession();
   try {
     const { orderId, shopkeeperId, amountPaid, note } = req.body;
+    const paidNow = Number(amountPaid);
 
-    const order = await Order.findById(orderId);
+    await session.startTransaction();
+
+    const order = await Order.findById(orderId).session(session);
     if (!order) return res.status(404).json({ message: 'Order not found' });
     if (order.paymentStatus === 'Paid') {
       return res.status(400).json({ message: 'This order is already fully paid' });
     }
+    if (String(order.shopkeeperId) !== String(shopkeeperId)) {
+      return res.status(400).json({ message: 'Payment shopkeeper does not match the order shopkeeper' });
+    }
+    if (paidNow > order.outstanding) {
+      return res.status(400).json({ message: `Payment cannot exceed outstanding amount (${order.outstanding})` });
+    }
 
-    const shopkeeper = await Shopkeeper.findById(shopkeeperId);
+    const shopkeeper = await Shopkeeper.findById(order.shopkeeperId).session(session);
     if (!shopkeeper) return res.status(404).json({ message: 'Shopkeeper not found' });
 
-    const payment = await Payment.create({ orderId, shopkeeperId, amountPaid, note });
+    const [payment] = await Payment.create([{ orderId, shopkeeperId: order.shopkeeperId, amountPaid: paidNow, note }], { session });
 
     // Update order
-    const newAmountPaid = order.amountPaid + amountPaid;
+    const newAmountPaid = order.amountPaid + paidNow;
     const newOutstanding = order.total - newAmountPaid;
 
     order.amountPaid = newAmountPaid;
@@ -31,16 +41,21 @@ exports.create = async (req, res) => {
     if (newAmountPaid >= order.total) order.paymentStatus = 'Paid';
     else if (newAmountPaid > 0) order.paymentStatus = 'Partial';
 
-    await order.save();
+    await order.save({ session });
 
     // Update shopkeeper outstanding
-    const reduction = amountPaid > order.outstanding + amountPaid ? order.outstanding : amountPaid;
-    shopkeeper.totalOutstanding = Math.max(0, shopkeeper.totalOutstanding - amountPaid);
-    await shopkeeper.save();
+    shopkeeper.totalOutstanding = Math.max(0, shopkeeper.totalOutstanding - paidNow);
+    await shopkeeper.save({ session });
+
+    await session.commitTransaction();
 
     res.status(201).json({ payment, order });
   } catch (err) {
+    if (session.inTransaction()) await session.abortTransaction();
     res.status(500).json({ message: 'Server error', error: err.message });
+  } finally {
+    if (session.inTransaction()) await session.abortTransaction();
+    session.endSession();
   }
 };
 
@@ -66,4 +81,3 @@ exports.getAll = async (req, res) => {
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 };
-

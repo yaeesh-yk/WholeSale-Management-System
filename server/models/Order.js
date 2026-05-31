@@ -34,7 +34,7 @@ orderSchema.pre('save', async function (next) {
     const counter = await Counter.findOneAndUpdate(
       { name: `invoice_${year}` },
       { $inc: { seq: 1 } },
-      { new: true, upsert: true }
+      { new: true, upsert: true, session: this.$session() }
     );
     const seq = String(counter.seq).padStart(4, '0');
     this.billNo = `INV-${year}-${seq}`;

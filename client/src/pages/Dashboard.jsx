@@ -6,7 +6,7 @@ import {
 } from 'recharts';
 import {
   TrendingUp, Users, Package, AlertTriangle,
-  DollarSign, ArrowUpRight, Loader2, ShoppingCart
+  DollarSign, ArrowUpRight, ShoppingCart, X
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
@@ -56,7 +56,40 @@ export default function Dashboard() {
   const [data, setData] = useState(defaultData);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
+  const [pendingRestore, setPendingRestore] = useState(null);
+  const [restorePhrase, setRestorePhrase] = useState('');
+  const [restoring, setRestoring] = useState(false);
   const restoreRef = useRef(null);
+
+  const resetRestoreInput = () => {
+    if (restoreRef.current) restoreRef.current.value = '';
+  };
+
+  const closeRestoreConfirm = () => {
+    setPendingRestore(null);
+    setRestorePhrase('');
+    resetRestoreInput();
+  };
+
+  const confirmRestore = async () => {
+    if (!pendingRestore || restorePhrase !== 'RESTORE') return;
+
+    setRestoring(true);
+    try {
+      await api.restore(pendingRestore.data);
+      toast.success('Restore completed');
+      setLoading(true);
+      const newData = await api.dashboard();
+      setData(newData);
+      closeRestoreConfirm();
+    } catch (err) {
+      console.error(err);
+      toast.error(err.message || 'Restore failed');
+    } finally {
+      setRestoring(false);
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     api.dashboard()
@@ -102,19 +135,19 @@ export default function Dashboard() {
                 try {
                   const text = await file.text();
                   const json = JSON.parse(text);
-                  await api.restore(json);
-                  toast.success('Restore completed');
-                  // reload dashboard data
-                  setLoading(true);
-                  const newData = await api.dashboard();
-                  setData(newData);
+                  setPendingRestore({
+                    fileName: file.name,
+                    data: json,
+                    counts: {
+                      shopkeepers: Array.isArray(json.shopkeepers) ? json.shopkeepers.length : 0,
+                      products: Array.isArray(json.products) ? json.products.length : 0,
+                      orders: Array.isArray(json.orders) ? json.orders.length : 0,
+                      payments: Array.isArray(json.payments) ? json.payments.length : 0,
+                    },
+                  });
                 } catch (err) {
                   console.error(err);
-                  toast.error(err.message || 'Restore failed');
-                } finally {
-                  // reset input
-                  if (restoreRef.current) restoreRef.current.value = '';
-                  setLoading(false);
+                  toast.error(err.message || 'Invalid backup file');
                 }
               }}
             />
@@ -307,6 +340,56 @@ export default function Dashboard() {
           </div>
         )}
       </div>
+
+      {pendingRestore && (
+        <div className="modal-overlay" onClick={closeRestoreConfirm}>
+          <div className="modal-box animate-slide-in max-w-md" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <AlertTriangle size={18} className="text-red-500" />
+                <h3 className="text-base font-bold text-slate-800">Confirm Restore</h3>
+              </div>
+              <button onClick={closeRestoreConfirm} className="p-1.5 rounded-lg hover:bg-slate-100">
+                <X size={16} />
+              </button>
+            </div>
+            <div className="p-6 space-y-4">
+              <p className="text-sm text-slate-600">
+                Restoring this backup will replace the current business data.
+              </p>
+              <div className="rounded-xl border border-slate-100 bg-slate-50 p-4 text-sm text-slate-600 space-y-1">
+                <p className="font-semibold text-slate-800 break-words">{pendingRestore.fileName}</p>
+                <p>Shopkeepers: {pendingRestore.counts.shopkeepers}</p>
+                <p>Products: {pendingRestore.counts.products}</p>
+                <p>Orders: {pendingRestore.counts.orders}</p>
+                <p>Payments: {pendingRestore.counts.payments}</p>
+              </div>
+              <div>
+                <label className="label">Type RESTORE to continue</label>
+                <input
+                  value={restorePhrase}
+                  onChange={e => setRestorePhrase(e.target.value)}
+                  className="input"
+                  placeholder="RESTORE"
+                />
+              </div>
+              <div className="flex gap-3 pt-2">
+                <button type="button" onClick={closeRestoreConfirm} className="btn-secondary flex-1 justify-center">
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={confirmRestore}
+                  disabled={restorePhrase !== 'RESTORE' || restoring}
+                  className="btn-danger flex-1 justify-center"
+                >
+                  {restoring ? 'Restoring...' : 'Restore'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

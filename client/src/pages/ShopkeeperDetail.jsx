@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { api } from '../lib/api';
 import { fmtCurrency, fmtDate, statusBadge } from '../lib/utils';
@@ -41,15 +41,15 @@ export default function ShopkeeperDetail() {
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm({ resolver: zodResolver(paySchema) });
 
-  const load = () => {
+  const load = useCallback(() => {
     setLoading(true);
     api.getShopkeeperHistory(id)
       .then(setData)
       .catch(() => toast.error('Failed to load data'))
       .finally(() => setLoading(false));
-  };
+  }, [id]);
 
-  useEffect(() => { load(); }, [id]);
+  useEffect(() => { load(); }, [load]);
 
   const unpaidOrders = data?.orders.filter(o => o.paymentStatus !== 'Paid') || [];
 

@@ -23,8 +23,8 @@ exports.getDashboard = async (req, res) => {
       Order.find({ date: { $gte: todayStart, $lte: todayEnd } }),
       Order.find({ date: { $gte: monthStart, $lte: monthEnd } }),
       Order.find({ date: { $gte: sevenDaysAgo } }).populate('shopkeeperId', 'name'),
-      Shopkeeper.find().sort({ totalOutstanding: -1 }),
-      Product.find(),
+      Shopkeeper.find({ isActive: { $ne: false } }).sort({ totalOutstanding: -1 }),
+      Product.find({ isActive: { $ne: false } }),
       Order.find().sort({ date: -1 }).limit(10).populate('shopkeeperId', 'name'),
     ]);
 

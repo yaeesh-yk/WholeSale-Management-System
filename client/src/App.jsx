@@ -15,24 +15,23 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Public Route */}
         <Route path="/login" element={<Login />} />
-
-        {/* Protected Routes inside App Layout */}
-        <Route path="/" element={<ProtectedRoute />}>
+        
+        <Route element={<ProtectedRoute />}>
           <Route element={<Layout />}>
-            <Route index element={<Dashboard />} />
-            <Route path="dashboard" element={<Dashboard />} />
-            <Route path="shopkeepers" element={<Shopkeepers />} />
-            <Route path="shopkeepers/:id" element={<ShopkeeperDetail />} />
-            <Route path="products" element={<Products />} />
-            <Route path="orders" element={<Orders />} />
-            <Route path="orders/new" element={<NewOrder />} />
-            <Route path="orders/:id/bill" element={<BillView />} />
-            <Route path="payments" element={<Payments />} />
-            <Route path="*" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/" index element={<Dashboard />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/shopkeepers" element={<Shopkeepers />} />
+            <Route path="/shopkeepers/:id" element={<ShopkeeperDetail />} />
+            <Route path="/products" element={<Products />} />
+            <Route path="/orders" element={<Orders />} />
+            <Route path="/orders/new" element={<NewOrder />} />
+            <Route path="/orders/:id/bill" element={<BillView />} />
+            <Route path="/payments" element={<Payments />} />
           </Route>
         </Route>
+        
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </BrowserRouter>
   );

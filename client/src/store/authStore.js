@@ -9,7 +9,7 @@ const parseTokenExpiry = (token) => {
     const [, payload] = token.split('.');
     const decoded = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')));
     return decoded.exp ? decoded.exp * 1000 : null;
-  } catch (err) {
+  } catch {
     return null;
   }
 };
