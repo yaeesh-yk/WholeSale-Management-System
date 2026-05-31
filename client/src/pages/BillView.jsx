@@ -7,7 +7,7 @@ import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import {
   ArrowLeft, Printer, Download, FileText,
-  Loader2, CheckCircle2, AlertTriangle, CreditCard
+  Loader2, CheckCircle2, AlertTriangle, CreditCard, Edit2
 } from 'lucide-react';
 
 export default function BillView() {
@@ -231,6 +231,9 @@ export default function BillView() {
           <ArrowLeft size={16} /> Back to History
         </Link>
         <div className="flex items-center gap-3">
+          <Link to={`/orders/${order._id}/edit`} className="btn-secondary">
+            <Edit2 size={16} /> Edit
+          </Link>
           <button onClick={handlePrint} className="btn-secondary">
             <Printer size={16} /> Print
           </button>

@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import {
   Search, FileText, ShoppingCart, Loader2, ArrowUpRight,
-  Filter, Calendar, DollarSign, CreditCard, AlertCircle
+  Filter, Calendar, DollarSign, CreditCard, AlertCircle, Edit2
 } from 'lucide-react';
 
 function StatCard({ label, value, icon: Icon, color }) {
@@ -201,12 +201,20 @@ export default function Orders() {
                       <span className={statusBadge(o.paymentStatus)}>{o.paymentStatus}</span>
                     </td>
                     <td className="table-cell">
-                      <Link
-                        to={`/orders/${o._id}/bill`}
-                        className="inline-flex items-center gap-1.5 text-xs text-primary-600 hover:text-primary-700 font-bold hover:underline"
-                      >
-                        Bill View <ArrowUpRight size={13} />
-                      </Link>
+                      <div className="flex items-center gap-3">
+                        <Link
+                          to={`/orders/${o._id}/bill`}
+                          className="inline-flex items-center gap-1.5 text-xs text-primary-600 hover:text-primary-700 font-bold hover:underline"
+                        >
+                          Bill <ArrowUpRight size={13} />
+                        </Link>
+                        <Link
+                          to={`/orders/${o._id}/edit`}
+                          className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-primary-600 font-bold hover:underline"
+                        >
+                          Edit <Edit2 size={13} />
+                        </Link>
+                      </div>
                     </td>
                   </tr>
                 ))}

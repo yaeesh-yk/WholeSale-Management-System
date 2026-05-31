@@ -14,5 +14,11 @@ router.post('/', [
   body('items.*.quantity').isInt({ min: 1 }).withMessage('Quantity must be at least 1'),
 ], ctrl.create);
 router.get('/:id', ctrl.getOne);
+router.put('/:id', [
+  body('shopkeeperId').notEmpty().withMessage('Shopkeeper is required'),
+  body('items').isArray({ min: 1 }).withMessage('At least one item is required'),
+  body('items.*.productId').notEmpty().withMessage('Product ID required for each item'),
+  body('items.*.quantity').isInt({ min: 1 }).withMessage('Quantity must be at least 1'),
+], ctrl.update);
 
 module.exports = router;

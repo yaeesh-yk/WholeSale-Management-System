@@ -100,6 +100,7 @@ export const api = {
   },
   createOrder: (body) => request('/orders', { method: 'POST', body: JSON.stringify(body) }),
   getOrder: (id) => request(`/orders/${id}`),
+  updateOrder: (id, body) => request(`/orders/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
 
   // Payments
   createPayment: (body) => request('/payments', { method: 'POST', body: JSON.stringify(body) }),

@@ -5,6 +5,7 @@ import Shopkeepers from './pages/Shopkeepers';
 import ShopkeeperDetail from './pages/ShopkeeperDetail';
 import Products from './pages/Products';
 import NewOrder from './pages/NewOrder';
+import EditOrder from './pages/EditOrder';
 import Orders from './pages/Orders';
 import Payments from './pages/Payments';
 import BillView from './pages/BillView';
@@ -26,6 +27,7 @@ function App() {
             <Route path="/products" element={<Products />} />
             <Route path="/orders" element={<Orders />} />
             <Route path="/orders/new" element={<NewOrder />} />
+            <Route path="/orders/:id/edit" element={<EditOrder />} />
             <Route path="/orders/:id/bill" element={<BillView />} />
             <Route path="/payments" element={<Payments />} />
           </Route>
