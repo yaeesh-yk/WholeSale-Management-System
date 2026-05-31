@@ -68,7 +68,8 @@ const request = async (path, options = {}, timeoutMs = 15000) => {
 
 export const api = {
   // Auth
-  login: (body) => request('/auth/login', { method: 'POST', body: JSON.stringify(body) }),
+  health: () => request('/health', {}, 45000),
+  login: (body) => request('/auth/login', { method: 'POST', body: JSON.stringify(body) }, 60000),
 
   // Dashboard
   dashboard: () => request('/dashboard'),

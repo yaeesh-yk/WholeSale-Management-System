@@ -18,6 +18,7 @@ export default function Login() {
   const { login, isAuthenticated } = useAuthStore();
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [warmingServer, setWarmingServer] = useState(true);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -25,17 +26,36 @@ export default function Login() {
     }
   }, [isAuthenticated, navigate]);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    api.health()
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) setWarmingServer(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const { register, handleSubmit, formState: { errors } } = useForm({ resolver: zodResolver(schema) });
 
   const onSubmit = async (data) => {
     setLoading(true);
     try {
+      if (warmingServer) {
+        toast.loading('Starting server. This may take a moment...', { id: 'server-warmup' });
+      }
       const res = await api.login(data);
+      toast.dismiss('server-warmup');
       localStorage.setItem('ws_token', res.token);
       login(res.token, res.username);
       toast.success(`Welcome back, ${res.username}!`);
       navigate('/dashboard');
     } catch (err) {
+      toast.dismiss('server-warmup');
       toast.error(err.message || 'Login failed');
     } finally {
       setLoading(false);
@@ -63,7 +83,9 @@ export default function Login() {
         {/* Card */}
         <div className="bg-white rounded-2xl shadow-2xl p-8">
           <h2 className="text-xl font-bold text-slate-800 mb-1">Sign in to your account</h2>
-          <p className="text-slate-500 text-sm mb-6">Enter your credentials to continue</p>
+          <p className="text-slate-500 text-sm mb-6">
+            {warmingServer ? 'Starting server. First login may take a moment.' : 'Enter your credentials to continue'}
+          </p>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
             <div>
